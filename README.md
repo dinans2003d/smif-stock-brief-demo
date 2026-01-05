@@ -5,14 +5,14 @@ The **SMIF Daily Stock Intelligence Brief** is a single-screen monitoring and ne
 
 Each SMIF analyst is assigned primary responsibility for one stock and is expected to review market activity and news each morning across multiple sources (CNBC, Wall Street Journal, Financial Times, Bloomberg, etc.). This process is time-intensive, repetitive, and inconsistent across analysts.
 
-This application centralizes **price behavior, trading signals, and stock-specific news** into a concise, explainable daily brief—allowing analysts to quickly understand what happened, why it matters, and whether deeper follow-up is required.
+This application centralizes **price behavior, trading signals, and stock-specific news** into a concise, explainable daily brief, allowing analysts to quickly understand what happened, why it matters, and whether deeper follow-up is required.
 
 The system provides **findings**, not recommendations.
 
 ---
 
 ## Objective
-The goal of this initiative is to **reduce information overload** and **standardize daily monitoring** by giving each analyst a clear, structured view of their assigned stock—without requiring them to manually read dozens of articles each morning.
+The goal of this initiative is to **reduce information overload** and **standardize daily monitoring** by giving each analyst a clear, structured view of their assigned stock, without requiring them to manually read dozens of articles each morning.
 
 Specifically, the tool helps analysts:
 - Quickly identify whether anything meaningful happened to their stock today
@@ -30,7 +30,7 @@ SMIF analysts face a recurring operational challenge:
 - Fragmented news across multiple platforms  
 - No consistent framework for determining which days require action  
 
-Current workflows rely on manual chart checks, ad-hoc news searches, and subjective judgment. This initiative introduces a **repeatable, transparent daily process** to surface what matters—and explicitly show when nothing does.
+Current workflows rely on manual chart checks, ad-hoc news searches, and subjective judgment. This initiative introduces a **repeatable, transparent daily process** to surface what matters, and explicitly show when nothing does.
 
 ---
 
@@ -125,7 +125,7 @@ This tool is intended to be used as:
 - A daily monitoring framework  
 - A consistency layer across analyst coverage  
 
-It complements—but does not replace—fundamental research, valuation work, or investment thesis updates.
+It complements, but does not replace fundamental research, valuation work, or investment thesis updates.
 
 ---
 
@@ -172,5 +172,5 @@ It is a **decision-support and monitoring framework** designed to improve analys
 ---
 
 ## Summary
-The SMIF Daily Stock Intelligence Brief provides a systematic, explainable way for analysts to understand what matters about their assigned stock today—without reading everything—and to focus their time where it adds the most value.
+The SMIF Daily Stock Intelligence Brief provides a systematic, explainable way for analysts to understand what matters about their assigned stock today, without reading everything, and to focus their time where it adds the most value.
 
