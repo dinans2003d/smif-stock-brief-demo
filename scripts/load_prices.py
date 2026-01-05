@@ -7,7 +7,7 @@ import yfinance as yf
 DB_PATH = "data/prices.db"
 
 # Demo tickers – you can change these later
-TICKERS = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL"]
+TICKERS = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "SPY"]
 
 LOOKBACK_DAYS = 120
 
