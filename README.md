@@ -1,170 +1,176 @@
-# SMIF Daily Stock Brief
-*A systematic daily monitoring and escalation tool for SMIF analysts*
+# SMIF Daily Stock Intelligence Brief
+
+## Overview
+The **SMIF Daily Stock Intelligence Brief** is a single-screen monitoring and news-compression tool built to support Student Managed Investment Fund (SMIF) analysts in their daily stock coverage responsibilities.
+
+Each SMIF analyst is assigned primary responsibility for one stock and is expected to review market activity and news each morning across multiple sources (CNBC, Wall Street Journal, Financial Times, Bloomberg, etc.). This process is time-intensive, repetitive, and inconsistent across analysts.
+
+This application centralizes **price behavior, trading signals, and stock-specific news** into a concise, explainable daily brief—allowing analysts to quickly understand what happened, why it matters, and whether deeper follow-up is required.
+
+The system provides **findings**, not recommendations.
 
 ---
 
-## Overview
-The **SMIF Daily Stock Brief** is a lightweight, rules-based analytics application designed to help Student Managed Investment Fund (SMIF) analysts **identify which portfolio names deserve attention on a given day**.
+## Objective
+The goal of this initiative is to **reduce information overload** and **standardize daily monitoring** by giving each analyst a clear, structured view of their assigned stock—without requiring them to manually read dozens of articles each morning.
 
-Rather than replacing fundamental research or investment judgment, this tool acts as a **daily signal scanner**—surfacing abnormal price behavior, volume shifts, volatility changes, and news activity in a concise, explainable format.
-
-**Objective:**  
-Reduce noise, focus analyst attention, and support faster, more disciplined monitoring decisions.
+Specifically, the tool helps analysts:
+- Quickly identify whether anything meaningful happened to their stock today
+- Understand key drivers behind price or volume changes
+- Detect important news events without scanning multiple publications
+- Decide how to allocate their research time more effectively
 
 ---
 
 ## Problem This Solves
 SMIF analysts face a recurring operational challenge:
-- Many portfolio holdings
-- Limited analyst time
-- No consistent process for deciding *which stocks matter today*
 
-Common workflows rely on manual chart checks, scattered news searches, and subjective intuition.  
-This initiative introduces a **repeatable, transparent daily process** to determine whether a stock warrants action, monitoring, or no follow-up.
+- One stock per analyst  
+- Limited time each morning  
+- Fragmented news across multiple platforms  
+- No consistent framework for determining which days require action  
+
+Current workflows rely on manual chart checks, ad-hoc news searches, and subjective judgment. This initiative introduces a **repeatable, transparent daily process** to surface what matters—and explicitly show when nothing does.
 
 ---
 
-## What the App Answers
-For any selected ticker, the application answers:
+## What the App Provides
+For a selected stock and trading day, the application answers:
 
-1. Did the stock move unusually today?
-2. Was trading volume abnormal relative to recent history?
-3. Is volatility elevated or muted versus its own past?
-4. Is there relevant same-day news in the dataset?
-5. Based on these signals, should the stock be escalated, monitored, or ignored?
+- Did the stock move unusually today?
+- Did it meaningfully outperform or underperform the market?
+- Was trading volume abnormal relative to recent history?
+- Is volatility elevated or unusually muted?
+- Was there any relevant same-day news coverage?
+- Based on these signals, does the stock require attention today?
 
-The system provides **attention signals**, not buy/sell recommendations.
+The output supports analyst judgment but does **not** replace fundamental research or thesis-driven analysis.
 
 ---
 
 ## Core Features
 
-### 1. Daily Decision Banner
-Each stock is assigned a daily decision state:
+### 1. Daily Intelligence Banner
+Each stock is assigned a daily attention state:
 
 - **NO ACTION** – Normal behavior, no follow-up required  
-- **MONITOR** – Mild anomalies worth watching  
-- **ESCALATE** – Significant signals justifying deeper analysis or discussion  
+- **MONITOR** – Mild anomalies or developing signals  
+- **ESCALATE** – Significant activity or news warranting deeper review  
 
-This decision is driven by a transparent scoring model.
+This state is driven by a transparent, rules-based scoring model.
 
 ---
 
 ### 2. “Why Today?” Explanation
-Every decision includes a human-readable rationale based on:
-- 1-day price movement
-- Relative performance vs SPY (when available)
-- Volume anomaly vs 30-day average
-- Rolling volatility percentile
-- Presence or absence of same-day news
+Every attention state includes a concise, human-readable explanation based on:
 
-This ensures all signals are **explainable, auditable, and discussion-ready**.
+- 1-day price movement  
+- Relative performance vs SPY  
+- Trading volume anomaly vs recent history  
+- Rolling volatility percentile  
+- Presence or absence of stock-specific news  
+
+All signals are explainable, auditable, and discussion-ready.
 
 ---
 
 ### 3. Attention Score (0–100)
-A composite score summarizes the day’s signals:
+A composite score summarizes the day’s activity and urgency:
 
 | Component | Weight |
-|---------|--------|
+|--------|--------|
 | Volume anomaly | 30% |
 | Volatility percentile | 30% |
-| Relative price move | 20% |
+| Relative price move vs SPY | 20% |
 | News activity | 20% |
 
-The score directly maps to the decision banner and allows analysts to rank stocks by urgency.
+The score maps directly to the daily attention state and allows analysts to quantify urgency without generating buy/sell signals.
 
 ---
 
-### 4. Benchmark Comparison
-A normalized price chart compares each stock to **SPY**, providing immediate context on relative performance.
+### 4. News Intelligence Snapshot
+The application surfaces same-day, stock-specific news from a centralized dataset.
+
+Rather than forcing analysts to read multiple full articles, the system is designed to highlight:
+- Whether news exists
+- How much news exists
+- Where it originated
+
+The **absence of news** is explicitly surfaced and treated as informative.
+
+This component is intentionally designed to evolve into deeper news intelligence and summarization.
 
 ---
 
-### 5. News Snapshot
-Displays same-day news items from a local CSV source.  
-The absence of news is explicitly surfaced and treated as informative.
+### 5. Benchmark Context
+Normalized price charts compare the stock’s recent performance to SPY, providing immediate relative context for market vs idiosyncratic movement.
 
 ---
 
-## Data & Architecture
+## Design Principles
+- Analyst-first workflow  
+- Minimal cognitive load  
+- Transparent, explainable logic  
+- No black-box models  
+- Local-first, auditable data storage  
 
-### Data Sources
-- **Price & volume data:** SQLite database (`data/prices.db`)
-- **News data:** CSV file (`data/news.csv`)
-
-### Technology Stack
-- Python
-- Pandas
-- SQLite
-- Streamlit
-
-### Design Principles
-- Simple and interpretable logic
-- Local-first data storage
-- Fully transparent calculations
-- No black-box models
-
-This makes the system easy to audit, extend, and explain to faculty, sponsors, and future SMIF cohorts.
+The system prioritizes interpretability and consistency over prediction.
 
 ---
 
 ## Intended Use in SMIF
 This tool is intended to be used as:
-- A **daily or weekly monitoring dashboard**
-- A **pre-meeting screening tool**
-- A method to prioritize analyst attention
-- A consistency layer across stock coverage
+- A morning analyst check-in  
+- A pre-meeting preparation tool  
+- A daily monitoring framework  
+- A consistency layer across analyst coverage  
 
-It complements, rather than replaces, fundamental valuation and thesis-driven research.
+It complements—but does not replace—fundamental research, valuation work, or investment thesis updates.
 
 ---
 
 ## Future Work
-Planned extensions include:
 
-### Portfolio-Level Analytics
-- Rank all holdings by Attention Score
-- Portfolio heatmaps of volatility and risk
-- “Top names to review today” summary
+### Enhanced News Intelligence
+- API-based news ingestion  
+- News categorization (earnings, guidance, regulatory, macro)  
+- Sentiment tagging  
+- Daily stock-specific news synthesis  
+- “What changed since yesterday?” indicators  
 
-### Enhanced News Integration
-- API-based news ingestion
-- Sentiment tagging
-- Event classification (earnings, guidance, macro)
+### Analyst Workflow Extensions
+- Analyst notes attached to daily signals  
+- Follow-up tracking on escalated days  
+- Historical review of signal effectiveness  
 
-### Advanced Risk & Factor Signals
-- Market vs idiosyncratic return decomposition
-- Volatility regime detection
-- Drawdown and momentum overlays
+### Portfolio-Level Views
+- Rank all holdings by attention score  
+- “Top names to review today” summary  
+- Portfolio volatility and risk heatmaps  
 
-### Alerts & Automation
-- Daily email or Slack summaries
-- Automatic escalation flags
-- Scheduled overnight data refresh
-
-### Research Governance
-- Analyst notes attached to daily signals
-- Action tracking and follow-ups
-- Historical evaluation of signal effectiveness
+### Automation
+- Daily email or Slack briefings  
+- Scheduled overnight refresh  
+- Automatic escalation alerts  
 
 ---
 
 ## What This Project Is Not
 This system is **not**:
-- A trading algorithm
-- A price prediction model
-- A buy/sell recommendation engine
+- A trading algorithm  
+- A price prediction model  
+- A buy/sell recommendation engine  
 
-It is a **decision-support and monitoring framework** designed to improve operational discipline within SMIF.
+It is a **decision-support and monitoring framework** designed to improve analyst efficiency and operational discipline.
 
 ---
 
 ## Project Status
 **Current status:** MVP / internal demo  
-**Next phase:** Portfolio-wide scoring and expanded news data sources
+**Next phase:** News intelligence expansion and portfolio-level prioritization  
 
 ---
 
 ## Summary
-The SMIF Daily Stock Brief provides a systematic, explainable way to determine **which stocks deserve analyst attention today—and why**.
+The SMIF Daily Stock Intelligence Brief provides a systematic, explainable way for analysts to understand what matters about their assigned stock today—without reading everything—and to focus their time where it adds the most value.
+
