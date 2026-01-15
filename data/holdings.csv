@@ -1,1 +1,38 @@
-
+﻿Ticker,Description,Sector ,Allocation,Quantity,AvgCost,MarketPrice,MarketValue
+ADBE,Autodesk,Technology,DEQ,20,349.99,339.04,6780.8
+AMZN,Amazon,Consumer Discretionary,DEQ,33,230.82,246.29,8127.57
+BAC,Bank of America,Financials,DEQ,130,55,56.18,7303.4
+CAT,Caterpillar,Industrials,DEQ,10,572.87,608.13,6081.3
+CMG,Chipotle,Consumer Discretionary,DEQ,118,37,39.18,4623.24
+CRM,Salesforce,Technology,DEQ,27,264.91,260.53,7034.31
+CSCO,Cisco,Technology,DEQ,71,77.03,73.96,5251.16
+DODIX,Dodge & Cox Income Fund Class I,Fixed Income,FI,2810,12.85,12.87,36164.7
+FISV,Fiserv,Financials,DEQ,68,67.17,69.5,4726
+JNJ,Johnson & Johnson,Healthcare,DEQ,30,206.95,205.75,6172.5
+LDOS,Leidos,Industrials,DEQ,34,180.4,195.22,6637.48
+FLIN,Franklin FTSE India ETF,Emerging Market Equity,EMEQ,340,38.59,38.27,13011.8
+LRCX,LAM Research,Technology,DEQ,44,171.18,200.96,8842.24
+MCK,McKesson,Healthcare,DEQ,8,820.29,814.63,6517.04
+MMC,Marsh & McLennan,Financials,DEQ,33,185.52,186.9,6167.7
+NTAP,NETAPP,Technology,DEQ,47,107.09,105.55,4960.85
+ORLY,OReilly,Consumer Discretionary,DEQ,62,91.21,91.63,5681.06
+QCOM,Qualcom,Technology,DEQ,45,171.05,181.87,8184.15
+SCHW,Schwab,Financials,DEQ,75,99.91,101.34,7600.5
+UNH,UnitedHealth,Healthcare,DEQ,18,330.11,346.85,6243.3
+MSFT,Microsoft Corp,Technology,DEQ,20,483.62,478.11,9562.2
+UNP,Union Pacific,Industrials,DEQ,27,231.32,229.85,6205.95
+AVUV,Avantis US Small Cap Value,Small Cap Value,DEQ,154,101.98,107.15,16501.1
+CQQQ,Invesco China Technology ETF,Emerging Market Equity,EMEQ,246,52,55.79,13724.34
+DCRE,Double Line Commercial RE Mortgage ETF,Fixed Income,FI,122,51.9,52,6344
+EWY,iShares South Korea ETF,Emerging Market Equity,EMEQ,71,97.22,106.59,7567.89
+HYDB,iShares High Yield Bond ETF,Fixed Income,FI,137,47.35,47.58,6518.46
+SPTI,SPDR Portfolio Intermediate Term Treasury ETF,Fixed Income,FI,449,28.84,28.84,12949.16
+VAW,Vanguard Materials ETF,Materials,DEQ,19,207.55,218.03,4142.57
+XLE,Energy Select Sector SPDR ETF,Energy,DEQ,180,44.71,46.55,8379
+SGOV,iShares 0-3 Month Treasuries,Fixed Income,FI,321,100.38,100.45,32244.45
+VPU,Vanguard Utilities ETF,Utilities,DEQ,22,185.04,182.68,4018.96
+SPTL,State Street SPDR LT Treasury Bond ETF,Fixed Income,FI,244,26.47,26.51,6468.44
+VDC,Vanguard Consumer STaples ETF,Cosnumer Staples,DEQ,51,211.24,213.42,10884.42
+XLC,State Street SPDR LT Treasury Bond ETF,Communications,DEQ,136,117.72,117.48,15977.28
+XLRE,State Street SPDR LT Treasury Bond ETF,Real Estate,DEQ,99,40.35,40.44,4003.56
+CASH,CAsh,,,,55,,55
