@@ -199,8 +199,4 @@ With:
 headers = {"User-Agent": "SMIF Dashboard (contact: dinan@email.com)"}
 ```
 
----
 
-## License / Disclaimer
-
-This project is for educational and research purposes only. Market data and news are provided by third-party services and subject to their respective terms.
