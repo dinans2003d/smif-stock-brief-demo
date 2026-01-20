@@ -1,137 +1,144 @@
 import sqlite3
+from datetime import date, timedelta
 from pathlib import Path
-from datetime import date
+
 import pandas as pd
+import yfinance as yf
 
 # Project root = parent of /scripts
 BASE_DIR = Path(__file__).resolve().parents[1]
 DB_PATH = BASE_DIR / "data" / "prices.db"
-HOLDINGS_CSV = BASE_DIR / "data" / "holdings.csv"
 
-EXPECTED_COLS = [
-    "Ticker", "Description", "Sector", "Allocation",
-    "Quantity", "AvgCost", "MarketPrice", "MarketValue"
-]
+LOOKBACK_DAYS = 120
+BENCHMARK = "SPY"
 
-def ensure_holdings_table(conn: sqlite3.Connection) -> None:
+
+def ensure_tables(conn: sqlite3.Connection) -> None:
     conn.execute(
         """
-        CREATE TABLE IF NOT EXISTS holdings (
+        CREATE TABLE IF NOT EXISTS prices (
             asof_date TEXT NOT NULL,
             ticker TEXT NOT NULL,
-            description TEXT,
-            sector TEXT,
-            allocation TEXT,
-            quantity REAL,
-            avg_cost REAL,
-            market_price REAL,
-            market_value REAL,
+            close REAL,
+            volume REAL,
             PRIMARY KEY (asof_date, ticker)
         )
         """
     )
     conn.commit()
 
-def load_and_clean_holdings() -> pd.DataFrame:
-    if not HOLDINGS_CSV.exists():
-        raise FileNotFoundError(f"Missing file: {HOLDINGS_CSV}")
 
-    df = pd.read_csv(HOLDINGS_CSV)
-    df.columns = [c.strip() for c in df.columns]
+def get_holdings_tickers(conn: sqlite3.Connection) -> list[str]:
+    """Pull tickers from the holdings table loaded by load_holdings.py."""
+    try:
+        rows = conn.execute("SELECT DISTINCT ticker FROM holdings ORDER BY ticker").fetchall()
+        return [r[0] for r in rows]
+    except Exception:
+        return []
 
-    missing = [c for c in EXPECTED_COLS if c not in df.columns]
-    if missing:
-        raise ValueError(
-            f"holdings.csv missing columns: {missing}\n"
-            f"Found columns: {list(df.columns)}"
-        )
 
-    df = df[EXPECTED_COLS].copy()
+def prune_prices_to_holdings(conn: sqlite3.Connection) -> int:
+    """
+    Delete any prices rows for tickers not present in holdings.
+    Keeps BENCHMARK too.
+    """
+    allowed = set(get_holdings_tickers(conn))
+    allowed.add(BENCHMARK)
 
-    # Normalize ticker
-    df["Ticker"] = df["Ticker"].astype(str).str.strip().str.upper()
-    df = df[df["Ticker"].str.len() > 0]
+    if not allowed:
+        return 0
 
-    # Normalize text fields
-    for col in ["Description", "Sector", "Allocation"]:
-        df[col] = df[col].astype(str).str.strip()
+    placeholders = ",".join(["?"] * len(allowed))
+    sql = f"DELETE FROM prices WHERE ticker NOT IN ({placeholders})"
+    cur = conn.execute(sql, tuple(sorted(allowed)))
+    conn.commit()
+    return cur.rowcount
 
-    # Coerce numeric columns
-    for col in ["Quantity", "AvgCost", "MarketPrice", "MarketValue"]:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Drop rows missing required numeric fields
-    df = df.dropna(subset=["Quantity", "MarketPrice", "MarketValue"])
+def fetch_prices(ticker: str, start_date: str) -> pd.DataFrame:
+    df = yf.download(
+        ticker,
+        start=start_date,
+        progress=False,
+        auto_adjust=False,
+        actions=False,
+        interval="1d",
+    )
 
-    # Remove duplicate tickers (keep last)
-    df = df.drop_duplicates(subset=["Ticker"], keep="last")
+    if df is None or df.empty:
+        return pd.DataFrame(columns=["asof_date", "ticker", "close", "volume"])
 
-    # Sanity check: MarketValue ≈ Quantity * MarketPrice
-    df["calc_mv"] = (df["Quantity"] * df["MarketPrice"]).round(2)
-    df["mv"] = df["MarketValue"].round(2)
-    bad = df[df["calc_mv"] != df["mv"]]
-    if len(bad) > 0:
-        sample = bad[["Ticker", "MarketValue", "calc_mv"]].head(10).to_string(index=False)
-        raise ValueError(
-            "MarketValue mismatch for some rows (MarketValue != Quantity*MarketPrice). Fix holdings.csv.\n"
-            f"Sample:\n{sample}"
-        )
+    df = df.reset_index()
 
-    return df
+    # yfinance sometimes returns multi-index columns; normalize if needed
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = [c[0] for c in df.columns]
 
-def upsert_holdings(conn: sqlite3.Connection, df: pd.DataFrame, asof: str) -> int:
-    rows = []
-    for r in df.itertuples(index=False):
-        rows.append((
-            asof,
-            r.Ticker,
-            r.Description,
-            r.Sector,
-            r.Allocation,
-            float(r.Quantity),
-            float(r.AvgCost) if pd.notna(r.AvgCost) else None,
-            float(r.MarketPrice) if pd.notna(r.MarketPrice) else None,
-            float(r.MarketValue) if pd.notna(r.MarketValue) else None,
-        ))
+    df = df.rename(columns={"Date": "asof_date", "Close": "close", "Volume": "volume"})
+    df["ticker"] = ticker
+    df["asof_date"] = pd.to_datetime(df["asof_date"]).dt.strftime("%Y-%m-%d")
+
+    return df[["asof_date", "ticker", "close", "volume"]]
+
+
+def upsert_prices(conn: sqlite3.Connection, df: pd.DataFrame) -> int:
+    if df.empty:
+        return 0
+
+    rows = list(df.itertuples(index=False, name=None))
 
     conn.executemany(
         """
-        INSERT INTO holdings (
-            asof_date, ticker, description, sector, allocation,
-            quantity, avg_cost, market_price, market_value
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO prices (asof_date, ticker, close, volume)
+        VALUES (?, ?, ?, ?)
         ON CONFLICT(asof_date, ticker) DO UPDATE SET
-            description=excluded.description,
-            sector=excluded.sector,
-            allocation=excluded.allocation,
-            quantity=excluded.quantity,
-            avg_cost=excluded.avg_cost,
-            market_price=excluded.market_price,
-            market_value=excluded.market_value
+            close=excluded.close,
+            volume=excluded.volume
         """,
         rows,
     )
     conn.commit()
     return len(rows)
 
-def main():
-    df = load_and_clean_holdings()
 
-    # Ensure /data exists
+def main() -> None:
+    start_date = (date.today() - timedelta(days=LOOKBACK_DAYS)).strftime("%Y-%m-%d")
+
+    # Ensure /data exists (sqlite will not create folders)
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     conn = sqlite3.connect(DB_PATH)
     try:
-        ensure_holdings_table(conn)
-        asof = date.today().strftime("%Y-%m-%d")
-        n = upsert_holdings(conn, df, asof)
-        print(f"Loaded holdings rows: {n}")
-        print(f"Tickers loaded: {df['Ticker'].tolist()}")
-        print(f"DB saved at: {DB_PATH}")
+        ensure_tables(conn)
+
+        # Source of truth = holdings table
+        tickers = get_holdings_tickers(conn)
+
+        if not tickers:
+            raise RuntimeError(
+                "No holdings tickers found. Run: python scripts/load_holdings.py first."
+            )
+
+        # Ensure benchmark is present
+        if BENCHMARK not in tickers:
+            tickers.append(BENCHMARK)
+
+        # ✅ Remove any old tickers not in holdings (plus benchmark)
+        deleted = prune_prices_to_holdings(conn)
+        print(f"Pruned prices rows (not in holdings): {deleted}")
+
+        total_rows = 0
+        for ticker in tickers:
+            df = fetch_prices(ticker, start_date)
+            count = upsert_prices(conn, df)
+            print(f"{ticker}: loaded {count} rows")
+            total_rows += count
+
+        print(f"Total rows loaded: {total_rows}")
+        print(f"Database saved at: {DB_PATH}")
     finally:
         conn.close()
 
+
 if __name__ == "__main__":
     main()
-
