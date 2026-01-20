@@ -49,58 +49,80 @@ A data-engineering + analytics project that ingests market prices, holdings, SEC
 - `app.py` — Streamlit dashboard for Portfolio Overview + Single Stock Brief
 
 ---
+# SMIF Daily Stock Brief
+
+An end-to-end analytics dashboard that ingests portfolio holdings, market prices, earnings, SEC filings, and news into a unified SQLite-backed data pipeline and delivers an analyst-ready daily stock brief via Streamlit.
+
+---
 
 ## Setup
 
 ### 1) Create and activate a virtual environment (Windows PowerShell)
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+```
 
 ### 2) Install dependencies
+
 ```bash
 pip install -r requirements.txt
-
-
-### 2) Install dependencies
-pip install -r requirements.txt
+```
 
 ### 3) Set Finnhub API key (required for news)
 
 Set a user-level environment variable (Windows / PowerShell):
 
+```powershell
 setx FINNHUB_API_KEY "YOUR_FINNHUB_KEY"
+```
 
 Close and reopen your terminal (or restart VS Code) so the variable is available.
 
 Verify:
 
+```powershell
 echo $env:FINNHUB_API_KEY
+```
 
 ---
 
-## Run the pipeline (required order)
+## Run the data pipeline (required order)
 
 From the project root:
 
-1) Load holdings  
+### 1) Load holdings
+
+```bash
 python scripts/load_holdings.py
+```
 
-2) Load prices  
+### 2) Load prices
+
+```bash
 python scripts/load_prices.py
+```
 
-3) Load news (Finnhub)  
+### 3) Load news (Finnhub)
+
+```bash
 python scripts/load_news.py
+```
 
-Optional sanity check: confirm tables exist
+### Optional sanity check: confirm tables exist
 
+```bash
 python -c "import sqlite3; c=sqlite3.connect('data/prices.db'); print(c.execute(\"SELECT name FROM sqlite_master WHERE type='table'\").fetchall()); c.close()"
+```
 
 ---
 
 ## Run the Streamlit app
 
+```bash
 streamlit run app.py
+```
 
 Open the local URL shown in the terminal (typically http://localhost:8501).
 
@@ -108,50 +130,56 @@ Open the local URL shown in the terminal (typically http://localhost:8501).
 
 ## Notes / Limitations
 
-- News source availability depends on your provider and licensing. The “Preferred sources only” toggle filters only if those sources exist in the feed.
+- News source availability depends on your provider and licensing. The “Preferred sources only” toggle filters only if those publishers exist in the feed.
 - Some symbols (mutual funds / ETFs) may return 403 Forbidden from Finnhub company-news; the loader continues and logs the error.
-- yfinance fields (market cap, margins, earnings dates) are best-effort and may be missing for certain tickers.
-- SQLite is used for fast iteration and reproducibility; swapping to Postgres is straightforward if needed.
+- yfinance fundamentals (market cap, margins, earnings dates) are best-effort and may be missing for certain tickers.
+- SQLite is used for fast iteration and reproducibility; migrating to Postgres is straightforward if needed.
 
 ---
 
 ## Project highlights (for recruiters)
 
-- Built an end-to-end data pipeline ingesting market and event data into a normalized analytical store (SQLite).
-- Implemented fault-tolerant API ingestion with upserts and deduplication.
-- Engineered analyst-oriented market signals (relative returns, volatility percentile, volume anomaly) with explainable “why today” output.
-- Delivered a daily research brief UI to support portfolio monitoring workflows.
+- Built an end-to-end data pipeline ingesting market prices, earnings, SEC filings, and news into a normalized analytical store (SQLite).
+- Implemented fault-tolerant API ingestion with upserts, deduplication, and rate-limit handling.
+- Engineered analyst-oriented market signals (relative returns, volatility percentile, volume anomaly) with explainable “why today” diagnostics.
+- Delivered a daily research brief UI to support portfolio monitoring and investment decision workflows.
 
 ---
 
-## Repo structure
+## Repository structure
 
+```
 smif-stock-brief-demo/
-  app.py
-  requirements.txt
-  README.md
-  data/
-    holdings.csv
-    prices.db
-  scripts/
-    load_holdings.py
-    load_prices.py
-    load_news.py
-    check_db.py
+├── app.py
+├── requirements.txt
+├── README.md
+├── data/
+│   ├── holdings.csv
+│   └── prices.db
+└── scripts/
+    ├── load_holdings.py
+    ├── load_prices.py
+    ├── load_news.py
+    └── check_db.py
+```
 
 ---
 
 ## requirements.txt
 
-pandas  
-numpy  
-requests  
-streamlit  
-yfinance  
+```txt
+pandas
+numpy
+requests
+streamlit
+yfinance
+```
 
-If you want locked versions (recommended for sharing):
+To lock exact versions for reproducibility:
 
+```bash
 pip freeze > requirements.txt
+```
 
 ---
 
@@ -161,16 +189,18 @@ The SEC expects a real contact email in the User-Agent header.
 
 Replace:
 
+```python
 headers = {"User-Agent": "SMIF Dashboard (contact: your_email@domain.com)"}
+```
 
 With:
 
+```python
 headers = {"User-Agent": "SMIF Dashboard (contact: dinan@email.com)"}
+```
 
 ---
 
 ## License / Disclaimer
 
-This project is for educational and research purposes. Market data and news are provided by third-party services and subject to their respective terms.
-
-
+This project is for educational and research purposes only. Market data and news are provided by third-party services and subject to their respective terms.
