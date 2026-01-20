@@ -404,6 +404,7 @@ if mode == "Portfolio Overview":
 # =========================
 st.title("SMIF Daily Stock Brief")
 
+# ticker list
 try:
     conn = sqlite3.connect(DB_PATH)
     tickers = pd.read_sql_query("SELECT DISTINCT ticker FROM holdings ORDER BY ticker", conn)["ticker"].tolist()
@@ -411,8 +412,14 @@ try:
 except Exception:
     tickers = []
 
+tickers = [str(t).upper() for t in tickers]
 tickers_dropdown = [t for t in tickers if t != BENCHMARK]
-ticker = st.selectbox("Select Ticker", tickers_dropdown, index=min(0, len(tickers_dropdown) - 1))
+
+if not tickers_dropdown:
+    st.error("No tickers found in holdings table. Load holdings first.")
+    st.stop()
+
+ticker = st.selectbox("Select Ticker", tickers_dropdown, index=0)
 
 # meta lookup
 meta = get_ticker_meta()
@@ -474,9 +481,9 @@ vol_hist = merged["volatility"].dropna()
 if vol_now is not None and len(vol_hist) >= 10:
     vol_pctile = float((vol_hist <= vol_now).mean())
 
-# ✅ news count from DB (last 7 days)
-news_df = load_news_from_db(ticker, days=7)
-news_count = len(news_df) if not news_df.empty else 0
+# news count for scoring (always last 7 days)
+news_df_score = load_news_from_db(ticker, days=7)
+news_count = len(news_df_score) if not news_df_score.empty else 0
 
 score, label = calc_attention_score(rel_ret_1d, vol_anomaly, vol_pctile, news_count)
 
@@ -510,7 +517,9 @@ why.append(
 )
 why = why[:5]
 
-# header
+# =========================
+# (1) HEADER
+# =========================
 subtitle_parts = [ticker]
 if sector_name:
     subtitle_parts.append(sector_name)
@@ -522,7 +531,19 @@ st.caption(" • ".join(subtitle_parts) + f"  |  Daily Brief ({asof_date.date().
 st.success(f"Signal: **{label}**  |  Attention Score: **{score}/100**")
 
 # =========================
-# EARNINGS (optimized for analysts)
+# (2) WHAT HAPPENED TODAY?  (moved ABOVE Earnings)
+# =========================
+st.markdown("### What happened today?")
+st.markdown("\n".join([f"- {x}" for x in why]))
+
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Attention", label, f"{score}/100")
+c2.metric("Latest Close", f"${latest_close:,.2f}", fmt_pct(ret_1d) if ret_1d is not None else None)
+c3.metric(f"Rel Return vs {BENCHMARK} (1D)", fmt_pct(rel_ret_1d) if rel_ret_1d is not None else "N/A")
+c4.metric("Volume Anomaly", fmt_mult(vol_anomaly))
+
+# =========================
+# (3) EARNINGS
 # =========================
 st.subheader("Earnings")
 
@@ -537,7 +558,11 @@ if SHOW_EARNINGS_DEBUG:
             st.write("calendar type:", type(cal).__name__)
             st.write("calendar raw:", cal)
 
-            ed = tk_dbg.get_earnings_dates(limit=12) if hasattr(tk_dbg, "get_earnings_dates") else getattr(tk_dbg, "earnings_dates", None)
+            ed = (
+                tk_dbg.get_earnings_dates(limit=12)
+                if hasattr(tk_dbg, "get_earnings_dates")
+                else getattr(tk_dbg, "earnings_dates", None)
+            )
             st.write("earnings_dates type:", type(ed).__name__)
             if isinstance(ed, pd.DataFrame):
                 st.write("earnings_dates shape:", ed.shape)
@@ -603,18 +628,9 @@ else:
         chart = chart[[c for c in ["eps_estimate", "reported_eps"] if c in chart.columns]].copy()
         st.scatter_chart(chart)
 
-# Why today
-st.markdown("### What happened today?")
-st.markdown("\n".join([f"- {x}" for x in why]))
-
-# KPI cards
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Attention", label, f"{score}/100")
-c2.metric("Latest Close", f"${latest_close:,.2f}", fmt_pct(ret_1d) if ret_1d is not None else None)
-c3.metric(f"Rel Return vs {BENCHMARK} (1D)", fmt_pct(rel_ret_1d) if rel_ret_1d is not None else "N/A")
-c4.metric("Volume Anomaly", fmt_mult(vol_anomaly))
-
-# SEC Filings
+# =========================
+# (5) COMPANY DOCS (Objective) — SEC Filings  (kept before snapshot)
+# =========================
 st.subheader("Company Docs (Objective) — SEC Filings")
 filings = get_latest_filings(ticker)
 if filings.empty:
@@ -623,7 +639,9 @@ else:
     for _, r in filings.iterrows():
         st.markdown(f"- **{r['form']}** ({r['filingDate']}) — [SEC Filing]({r['filing_url']})")
 
-# Financial snapshot
+# =========================
+# (4) FINANCIAL SNAPSHOT (best-effort)
+# =========================
 st.subheader("Financial Snapshot (best-effort)")
 a, b, c, d = st.columns(4)
 a.metric("Market Cap", f"${info.get('marketCap', 0):,}" if info.get("marketCap") else "N/A")
@@ -644,10 +662,11 @@ fundamentals = {
 fdf = pd.DataFrame([{"Metric": k, "Value": v} for k, v in fundamentals.items()])
 st.dataframe(fdf, use_container_width=True)
 
-# News (DB)
+# =========================
+# (6) NEWS SNAPSHOT (DB)
+# =========================
 st.subheader("News Snapshot")
 
-# 1) Clear date-range selector (human readable)
 range_label = st.radio(
     "Show headlines from:",
     ["Today", "Last 3 days", "Last 7 days"],
@@ -657,13 +676,11 @@ range_label = st.radio(
 days_map = {"Today": 1, "Last 3 days": 3, "Last 7 days": 7}
 days = days_map[range_label]
 
-# 2) Optional preferred-source filter (Option B)
 preferred_only = st.toggle(
     "Preferred sources only (WSJ / FT / Bloomberg / CNBC)",
-    value=False
+    value=False,
 )
 
-# NOTE: provider source strings vary; include common variants
 preferred_sources = {
     "CNBC",
     "Financial Times",
@@ -675,10 +692,8 @@ preferred_sources = {
     "WSJ",
 }
 
-# 3) Load from DB
 news_df_ui = load_news_from_db(ticker, days=days)
 
-# Price move badges
 move_badge = f"{ticker} {fmt_pct(ret_1d)}"
 rel_badge = f"vs {BENCHMARK} {fmt_pct(rel_ret_1d)}" if rel_ret_1d is not None else f"vs {BENCHMARK} N/A"
 st.caption(f"{move_badge}  •  {rel_badge}")
@@ -686,7 +701,6 @@ st.caption(f"{move_badge}  •  {rel_badge}")
 if news_df_ui.empty:
     st.caption("No recent news found in DB for this ticker/window. Run: python scripts/load_news.py")
 else:
-    # Normalize sources for matching
     news_df_ui["source_norm"] = news_df_ui["source"].fillna("").astype(str).str.strip()
 
     total_before = len(news_df_ui)
@@ -707,7 +721,6 @@ else:
     if news_df_ui.empty:
         st.warning("No headlines matched your preferred-source filter. Turn off the filter or change provider.")
     else:
-        # De-dupe + limit
         news_df_ui = news_df_ui.drop_duplicates(subset=["title"]).head(10)
 
         for _, r in news_df_ui.iterrows():
