@@ -1,4 +1,4 @@
-# SMIF Daily Stock Brief — Equity Portfolio Intelligence Engine
+# SMIF Daily Stock Brief : Equity Portfolio Intelligence Engine
 
 A data-engineering + analytics project that ingests market prices, holdings, SEC filings, earnings context, and real-time company news into a normalized SQLite datastore, then serves an analyst-facing Streamlit brief for daily monitoring and research prioritization.
 
